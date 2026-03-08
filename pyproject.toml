@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.backends._legacy:_Backend"
+
+[project]
+name = "automation"
+version = "1.0.0"
+description = "Automate SAP data extraction, SharePoint upload, and Excel macro execution"
+readme = "README.md"
+license = {file = "LICENSE"}
+authors = [{name = "Mircea Sava Ioan"}]
+requires-python = ">=3.9"
+dependencies = [
+    "pandas",
+    "xlwings",
+    "pywin32",
+    "psutil",
+]
+
+[tool.setuptools.packages.find]
+exclude = ["templates*"]
+
+[tool.setuptools.exclude-package-data]
+"*" = ["*.bat"]
+
+[project.optional-dependencies]
+dev = ["build", "twine"]
