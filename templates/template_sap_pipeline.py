@@ -1,4 +1,5 @@
 import os
+from datetime import datetime, timedelta
 from process_automation import run_extract
 
 
@@ -11,13 +12,13 @@ def sap_script(session):
     """
 
     # Replace everything below with your own SAP recording
-    session.findById("wnd[0]/usr/ctxtS_PERNR-LOW").text = "29365"
+    session.findById("wnd[0]/usr/ctxtS_ERSDA-LOW").text = (datetime.now() - timedelta(weeks=3)).strftime("%Y.%m.%d")
+    session.findById("wnd[0]/usr/ctxtS_ERSDA-HIGH").text = datetime.now().strftime("%Y.%m.%d")
+    session.findById("wnd[0]/usr/ctxtS_PERNR-LOW").text = ""
     session.findById("wnd[0]/usr/ctxtS_PERNR-LOW").setFocus()
     session.findById("wnd[0]/usr/ctxtS_PERNR-LOW").caretPosition = 8
-    session.findById("wnd[0]").sendVKey(0)
     session.findById("wnd[0]/tbar[1]/btn[8]").press()
-    session.findById("wnd[0]/usr/cntlGRID1/shellcont/shell").contextMenu()
-    session.findById("wnd[0]/usr/cntlGRID1/shellcont/shell").selectContextMenuItem("&XXL")
+    session.findById("wnd[0]/mbar/menu[0]/menu[3]/menu[1]").select()
     session.findById("wnd[1]/tbar[0]/btn[0]").press()
 
 
@@ -42,7 +43,7 @@ if __name__ == "__main__":
 
         # --- Transaction settings --------------------------------------------
 
-        transaction="zsupv",                                                    # <-- CHANGE: your transaction code
+        transaction="ZSUPV",                                                    # <-- CHANGE: your transaction code
 
         # --- Export format ---------------------------------------------------
         #
@@ -54,15 +55,15 @@ if __name__ == "__main__":
         # --- Local download settings -----------------------------------------
 
         download_dir=os.path.join(os.environ["USERPROFILE"], "Downloads"),      # <-- CHANGE: local download directory
-        download_filename="zsupv",                                              # <-- CHANGE: base filename (leave "" to use transaction name)
+        download_filename="ZSUPV",                                              # <-- CHANGE: base filename (leave "" to use transaction name)
         download_use_date=True,                                                 # <-- CHANGE: True = append date to filename
         download_use_time=True,                                                 # <-- CHANGE: True = append time to avoid filename conflicts
 
         # --- SharePoint settings ---------------------------------------------
 
         upload_to_sharepoint=True,                                             # <-- CHANGE: True = upload to SharePoint, False = keep local only
-        template_path=r"Z:\path\to\TEMPLATE_DO_NOT_DELETE.xlsx",              # <-- CHANGE: full path to your template .xlsx file
-        sharepoint_folder=r"Z:\path\to\your_sharepoint_folder",                # <-- CHANGE: SharePoint destination folder
+        template_path=r"Z:\00_DATABASE_DLDP\ADO_TEMPLATE\TEMPLATE_DO_NOT_DELETE.xlsx",                             # <-- CHANGE: full path to your template .xlsx file
+        sharepoint_folder=r"Z:\00_DATABASE_DLDP\ADO_TEMPLATE",                 # <-- CHANGE: SharePoint destination folder
         sharepoint_filename="Default",                                         # <-- CHANGE: "Default" = same as download_filename, or set a custom name
         sharepoint_use_date="Default",                                         # <-- CHANGE: "Default" = same as download_use_date, or True/False
         sharepoint_use_time="Default",                                         # <-- CHANGE: "Default" = same as download_use_time, or True/False
