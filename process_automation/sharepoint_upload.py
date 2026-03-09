@@ -10,7 +10,7 @@
 #   5. Deletes the Desktop working copy (unless keep_desktop_copy=True)
 #
 # Usage:
-#   from sharepoint_upload import save_excel_to_sharepoint
+#   from process_automation import save_excel_to_sharepoint
 #
 #   result = save_excel_to_sharepoint(df,
 #       template_folder=r"Z:\path\to\template_folder",

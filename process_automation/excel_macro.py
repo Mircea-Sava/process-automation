@@ -3,7 +3,7 @@
 # Opens an Excel file (even if already open) and runs a VBA macro by name.
 #
 # Usage:
-#   from excel_macro import run_excel_macro
+#   from process_automation import run_excel_macro
 #
 #   run_excel_macro(
 #       file_path=r"Z:\some_folder\my_workbook.xlsm",

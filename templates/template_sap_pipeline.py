@@ -1,8 +1,5 @@
 import os
-import sys
-from pathlib import Path
-sys.path.append(str(Path(__file__).resolve().parent / "functions"))
-from sap_extract import run_extract
+from process_automation import run_extract
 
 
 def sap_script(session):

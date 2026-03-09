@@ -16,7 +16,7 @@
 #   9. Returns the DataFrame   : so your script can continue working with the data
 #
 # Usage:
-#   from sap_extract import run_extract
+#   from process_automation import run_extract
 #
 #   df = run_extract(
 #       sap_script,
@@ -35,8 +35,8 @@ import shutil
 import time
 from datetime import datetime
 import pandas as pd
-from sap_connection import SAPManager
-from sharepoint_upload import save_excel_to_sharepoint
+from .sap_connection import SAPManager
+from .sharepoint_upload import save_excel_to_sharepoint
 
 
 def build_filename(base, use_date=True, use_time=True):

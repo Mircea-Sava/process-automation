@@ -1,7 +1,4 @@
-import sys
-from pathlib import Path
-sys.path.append(str(Path(__file__).resolve().parent / "functions"))
-from excel_macro import run_excel_macro
+from process_automation import run_excel_macro
 
 FILE = r"Z:\path\to\your_workbook.xlsm"                              # <-- CHANGE: full path to your .xlsm file
 

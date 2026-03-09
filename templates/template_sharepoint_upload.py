@@ -1,8 +1,5 @@
-import sys
-from pathlib import Path
 import pandas as pd
-sys.path.append(str(Path(__file__).resolve().parent / "functions"))
-from sharepoint_upload import save_excel_to_sharepoint
+from process_automation import save_excel_to_sharepoint
 
 
 # --- Step 1: Load your data -------------------------------------------------

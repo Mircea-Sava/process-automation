@@ -18,6 +18,7 @@ dependencies = [
 ]
 
 [tool.setuptools.packages.find]
+include = ["process_automation*"]
 exclude = ["templates*"]
 
 [tool.setuptools.exclude-package-data]
