@@ -21,7 +21,7 @@
 #   df = run_extract(
 #       sap_script,
 #       transaction="ZSUPVENG",
-#       template_folder=r"Z:\path\to\template_folder",
+#       template_path=r"Z:\path\to\TEMPLATE_DO_NOT_DELETE.xlsx",
 #       export_format="xlsx",
 #       upload_to_sharepoint=True,
 #       sharepoint_folder=r"Z:\00_DATABASE_DLDP\ADO_TEMPLATE\ZSUPVENG",
@@ -51,7 +51,7 @@ def build_filename(base, use_date=True, use_time=True):
 
 
 def run_extract(sap_script, transaction="", export_format="xlsx",
-                template_folder="",
+                template_path="",
                 sharepoint_folder="",
                 sharepoint_filename="Default", download_dir=None,
                 download_filename="",
@@ -245,7 +245,7 @@ def run_extract(sap_script, transaction="", export_format="xlsx",
 
         result = save_excel_to_sharepoint(
             df_copied,
-            template_folder=template_folder,
+            template_path=template_path,
             sharepoint_folder=sharepoint_folder,
             output_filename_prefix=OUTPUT_PREFIX,
             column_types=column_types

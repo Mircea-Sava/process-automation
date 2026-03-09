@@ -3,7 +3,7 @@
 # Uploads DataFrames to SharePoint as Excel files using a template-based approach.
 #
 # How it works:
-#   1. Finds TEMPLATE_DO_NOT_DELETE.xlsx in the template_folder you provide
+#   1. Uses the template .xlsx file you provide via template_path
 #   2. Copies the template to Desktop as a working copy (renamed to your output filename)
 #   3. Opens the working copy with xlwings and writes your DataFrame into the first sheet
 #   4. Saves and copies the file to the SharePoint folder
@@ -13,7 +13,7 @@
 #   from process_automation import save_excel_to_sharepoint
 #
 #   result = save_excel_to_sharepoint(df,
-#       template_folder=r"Z:\path\to\template_folder",
+#       template_path=r"Z:\path\to\TEMPLATE_DO_NOT_DELETE.xlsx",
 #       sharepoint_folder=r"Z:\path\to\your_sharepoint_folder",
 #       output_filename_prefix="MyReport_2026-02-26",
 #   )
@@ -42,7 +42,7 @@ _EXCEL_FORMATS = {
 
 def save_excel_to_sharepoint(
     df: pd.DataFrame,
-    template_folder: str,
+    template_path: str,
     sharepoint_folder: str,
     output_filename_prefix: str,
     keep_desktop_copy: bool = False,
@@ -57,25 +57,15 @@ def save_excel_to_sharepoint(
         print(f"   [Warning] Could not create SharePoint folder dynamically. Relying on existing path. ({e})")
     os.makedirs(desktop_folder, exist_ok=True)
 
-    # Look for the template file
-    if not os.path.exists(template_folder):
-        raise FileNotFoundError(f"Source folder does not exist: {template_folder}")
+    # Validate template file
+    if not os.path.isfile(template_path):
+        raise FileNotFoundError(f"Template file does not exist: {template_path}")
 
-    files = os.listdir(template_folder)
-    template_file = next(
-        (f for f in files if f.startswith(_TEMPLATE_PATTERN) and f.lower().endswith(".xlsx")),
-        None
-    )
-
-    if not template_file:
-        raise FileNotFoundError(
-            f"No matching template file found in '{template_folder}'\n"
-            f"Looking for: {_TEMPLATE_PATTERN}*.xlsx"
-        )
+    src_path = template_path
+    template_file = os.path.basename(src_path)
 
     # Build paths
     new_filename = f"{output_filename_prefix}.xlsx"
-    src_path = os.path.join(template_folder, template_file)
     sharepoint_path = os.path.join(sharepoint_folder, new_filename)
     desktop_path = os.path.join(desktop_folder, new_filename)
 

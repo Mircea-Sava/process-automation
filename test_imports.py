@@ -1,7 +1,6 @@
 import os
 from process_automation import run_extract
 
-
 def sap_script(session):
     """Paste your full SAP recording here.
 
@@ -61,8 +60,8 @@ if __name__ == "__main__":
         # --- SharePoint settings ---------------------------------------------
 
         upload_to_sharepoint=True,                                             # <-- CHANGE: True = upload to SharePoint, False = keep local only
-        template_path=r"Z:\path\to\TEMPLATE_DO_NOT_DELETE.xlsx",              # <-- CHANGE: full path to your template .xlsx file
-        sharepoint_folder=r"Z:\path\to\your_sharepoint_folder",                # <-- CHANGE: SharePoint destination folder
+        template_path=r"Z:\00_DATABASE_DLDP\ADO_TEMPLATE\TEMPLATE_DO_NOT_DELETE.xlsx",      # <-- CHANGE: full path to your template .xlsx file
+        sharepoint_folder=r"Z:\00_DATABASE_DLDP\ADO_TEMPLATE",                # <-- CHANGE: SharePoint destination folder
         sharepoint_filename="Default",                                         # <-- CHANGE: "Default" = same as download_filename, or set a custom name
         sharepoint_use_date="Default",                                         # <-- CHANGE: "Default" = same as download_use_date, or True/False
         sharepoint_use_time="Default",                                         # <-- CHANGE: "Default" = same as download_use_time, or True/False

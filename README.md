@@ -45,7 +45,7 @@ The main template. Handles the full workflow: connect to SAP, run your transacti
 df = run_extract(sap_script,
     transaction="ZSUPVENG",
     export_format="xlsx",
-    template_folder=r"Z:\path\to\template_folder",
+    template_path=r"Z:\path\to\TEMPLATE_DO_NOT_DELETE.xlsx",
     sharepoint_folder=r"Z:\path\to\your_sharepoint_folder",
 )
 ```
@@ -54,7 +54,7 @@ df = run_extract(sap_script,
 1. Copy this template and rename it (e.g. `ZSUPVENG.py`)
 2. Paste your SAP recording into the `sap_script()` function
 3. Set `transaction` to your transaction code
-4. Set `template_folder` to the SharePoint folder containing your checked-in `.xlsx` template
+4. Set `template_path` to the full path of your checked-in `.xlsx` template file
 5. Set `sharepoint_folder` to where you want the output file saved
 6. Run the script
 
@@ -64,7 +64,7 @@ Uploads any data to SharePoint as a formatted Excel file. No SAP needed. Useful 
 
 ```python
 result = save_excel_to_sharepoint(df,
-    template_folder=r"Z:\path\to\template_folder",
+    template_path=r"Z:\path\to\TEMPLATE_DO_NOT_DELETE.xlsx",
     sharepoint_folder=r"Z:\path\to\your_sharepoint_folder",
     output_filename_prefix="MyReport_2026-01-01",
 )
