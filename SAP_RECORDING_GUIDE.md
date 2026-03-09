@@ -18,6 +18,8 @@ Make sure **Enable Scripting** is checked and both notification checkboxes are u
 
 Still in SAP, go to **Customize Local Layout** → **Script Recording and Playback**.
 
+![Customize Local Layout menu](images/sap_recording_menu.png)
+
 Click **Record** and then perform your transaction as you normally would — fill in the selection screen, run the report, click the export menu, etc.
 
 ![SAP recording dialog](images/sap_recording.png)
