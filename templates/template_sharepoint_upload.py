@@ -12,7 +12,7 @@ df = pd.read_excel(r"Z:\path\to\your_file.xlsx")                        # <-- CH
 result = save_excel_to_sharepoint(df,
 
     # --- Destination ---------------------------------------------------------
-    template_path=r"Z:\path\to\TEMPLATE_DO_NOT_DELETE.xlsx",            # <-- CHANGE: full path to your template .xlsx file
+    template_path=r"Z:\path\to\template.xlsx",            # <-- CHANGE: full path to your template .xlsx file
     sharepoint_folder=r"Z:\path\to\your_sharepoint_folder",              # <-- CHANGE: SharePoint destination folder
     output_filename_prefix="MyReport_2026-01-01",                        # <-- CHANGE: output filename (without .xlsx)
 
