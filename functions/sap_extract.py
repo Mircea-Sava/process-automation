@@ -198,8 +198,12 @@ def run_extract(sap_script, transaction="", export_format="xlsx",
                         try:
                             for f in proc.open_files():
                                 if os.path.normcase(f.path) == target_path:
-                                    proc.kill()
-                                    proc.wait(timeout=5)
+                                    proc.terminate()
+                                    try:
+                                        proc.wait(timeout=5)
+                                    except psutil.TimeoutExpired:
+                                        proc.kill()
+                                        proc.wait(timeout=5)
                                     print(f"Killed Excel (PID {proc.pid}) holding {extract_name2}")
                                     break
                         except (psutil.NoSuchProcess, psutil.AccessDenied):

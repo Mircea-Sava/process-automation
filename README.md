@@ -103,6 +103,15 @@ Your SAP recording should include the export menu clicks (right-click, select fo
 | `"xlsx"` | Fills in the save dialog, waits for the file, closes the Excel window SAP opens |
 | `"clipboard"` | No save dialog needed, reads directly from clipboard |
 
+## Running Multiple Scripts at Once
+
+These scripts are safe to run in parallel (e.g. a sequencer running multiple SAP transactions at the same time):
+
+- **SAP Logon won't block the sequencer** — SAP Logon is launched independently so the sequencer doesn't wait for it to close before moving on to the next task
+- **Excel crashes won't hide the real error** — if Excel stops responding mid-task, the script reports the actual problem instead of a confusing secondary error
+- **Only your Excel gets closed** — when a script finishes, it only closes the Excel window it opened. Other scripts' Excel windows are left alone
+- **Excel gets a chance to close cleanly** — the script asks Excel to close nicely first and waits 5 seconds. If it doesn't respond, then it force-closes it
+
 ## Tools
 
 **Transaction Checker** (`tools/check_transactions.py`): Scans all your scripts for SAP transaction codes, then connects to SAP and verifies each one opens successfully. Run it with `check_transactions.bat`.

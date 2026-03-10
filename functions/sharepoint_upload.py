@@ -141,7 +141,10 @@ def save_excel_to_sharepoint(
                 print("\n   [OK] All changes saved")
 
             finally:
-                app.quit()
+                try:
+                    app.quit()
+                except Exception as quit_err:
+                    print(f"   [Warning] Could not quit Excel (may already be closed): {quit_err}")
 
         except Exception as e:
             print(f"\n[Error] Step 2 failed: {e}")

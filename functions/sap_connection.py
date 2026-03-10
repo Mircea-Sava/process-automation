@@ -155,7 +155,14 @@ class SAPManager:
                 if not os.path.exists(exe_path):
                     raise FileNotFoundError(f"SAP Executable not found at {exe_path}")
 
-                subprocess.Popen(f'"{exe_path}" /LSXML_FILE="{xml_full_path}"', shell=True)
+                subprocess.Popen(
+                    f'"{exe_path}" /LSXML_FILE="{xml_full_path}"',
+                    shell=True,
+                    stdin=subprocess.DEVNULL,
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                    creationflags=subprocess.DETACHED_PROCESS,
+                )
 
                 # Poll until SAP GUI is available instead of fixed sleep
                 for _ in range(15):
