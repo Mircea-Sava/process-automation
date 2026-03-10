@@ -1,8 +1,5 @@
-import sys
-from pathlib import Path
 import pandas as pd
-sys.path.append(str(Path(__file__).resolve().parent / "functions"))
-from sharepoint_upload import save_excel_to_sharepoint
+from process_automation import save_excel_to_sharepoint
 
 
 # --- Step 1: Load your data -------------------------------------------------
@@ -15,7 +12,7 @@ df = pd.read_excel(r"Z:\path\to\your_file.xlsx")                        # <-- CH
 result = save_excel_to_sharepoint(df,
 
     # --- Destination ---------------------------------------------------------
-    template_folder=r"Z:\path\to\template_folder",                       # <-- CHANGE: folder containing your template .xlsx file
+    template_path=r"Z:\path\to\template.xlsx",            # <-- CHANGE: full path to your template .xlsx file
     sharepoint_folder=r"Z:\path\to\your_sharepoint_folder",              # <-- CHANGE: SharePoint destination folder
     output_filename_prefix="MyReport_2026-01-01",                        # <-- CHANGE: output filename (without .xlsx)
 

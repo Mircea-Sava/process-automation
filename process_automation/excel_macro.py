@@ -3,7 +3,7 @@
 # Opens an Excel file (even if already open) and runs a VBA macro by name.
 #
 # Usage:
-#   from excel_macro import run_excel_macro
+#   from process_automation import run_excel_macro
 #
 #   run_excel_macro(
 #       file_path=r"Z:\some_folder\my_workbook.xlsm",
@@ -15,13 +15,13 @@ import win32com.client
 import os
 
 
-def run_excel_macro(file_path: str, macro_name: str, module_name: str = None):
+def run_excel_macro(file_path: str, macro_name: str, module_name: str = None, visible: bool = True):
     """Open an Excel file (or attach to it if already open) and run a macro by name."""
     file_path = os.path.abspath(file_path)
     filename = os.path.basename(file_path)
 
     excel = win32com.client.Dispatch("Excel.Application")
-    excel.Visible = True
+    excel.Visible = visible
 
     # Check if the workbook is already open
     wb = None

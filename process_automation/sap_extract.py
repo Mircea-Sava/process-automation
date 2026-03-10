@@ -16,12 +16,12 @@
 #   9. Returns the DataFrame   : so your script can continue working with the data
 #
 # Usage:
-#   from sap_extract import run_extract
+#   from process_automation import run_extract
 #
 #   df = run_extract(
 #       sap_script,
 #       transaction="ZSUPVENG",
-#       template_folder=r"Z:\path\to\template_folder",
+#       template_path=r"Z:\path\to\TEMPLATE_DO_NOT_DELETE.xlsx",
 #       export_format="xlsx",
 #       upload_to_sharepoint=True,
 #       sharepoint_folder=r"Z:\00_DATABASE_DLDP\ADO_TEMPLATE\ZSUPVENG",
@@ -35,8 +35,8 @@ import shutil
 import time
 from datetime import datetime
 import pandas as pd
-from sap_connection import SAPManager
-from sharepoint_upload import save_excel_to_sharepoint
+from .sap_connection import SAPManager
+from .sharepoint_upload import save_excel_to_sharepoint
 
 
 def build_filename(base, use_date=True, use_time=True):
@@ -51,7 +51,7 @@ def build_filename(base, use_date=True, use_time=True):
 
 
 def run_extract(sap_script, transaction="", export_format="xlsx",
-                template_folder="",
+                template_path="",
                 sharepoint_folder="",
                 sharepoint_filename="Default", download_dir=None,
                 download_filename="",
@@ -249,7 +249,7 @@ def run_extract(sap_script, transaction="", export_format="xlsx",
 
         result = save_excel_to_sharepoint(
             df_copied,
-            template_folder=template_folder,
+            template_path=template_path,
             sharepoint_folder=sharepoint_folder,
             output_filename_prefix=OUTPUT_PREFIX,
             column_types=column_types

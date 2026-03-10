@@ -1,14 +1,11 @@
-import sys
-from pathlib import Path
-sys.path.append(str(Path(__file__).resolve().parent / "functions"))
-from excel_macro import run_excel_macro
+from process_automation import run_excel_macro
 
-FILE = r"Z:\path\to\your_workbook.xlsm"                              # <-- CHANGE: full path to your .xlsm file
+FILE = r"Z:\path\to\your_workbook.xlsm"                                      # <-- CHANGE: full path to your .xlsm file
 
 macros = [                                                           # <-- ADD: one (macro_name, module_name) per line
-    ("MyMacro1", "Module1"),                                         # <-- CHANGE: ("MacroName", "ModuleName")
-    ("MyMacro2", "Module2"),                                         # <-- CHANGE: ("MacroName", "ModuleName")
+    ("MacroName1", "ModuleName1"),                                         # <-- CHANGE: ("MacroName", "ModuleName")
+    ("MacroName2", "ModuleName2"),                                         # <-- CHANGE: ("MacroName", "ModuleName")
 ]
 
 for macro_name, module_name in macros:
-    run_excel_macro(file_path=FILE, macro_name=macro_name, module_name=module_name)
+    run_excel_macro(file_path=FILE, macro_name=macro_name, module_name=module_name, visible=False)  # <-- CHANGE: False to run in background

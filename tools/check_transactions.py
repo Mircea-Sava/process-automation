@@ -11,13 +11,7 @@ import time
 
 REPO_ROOT = os.path.join(os.environ["USERPROFILE"], "Documents", "ADO", "Plant5")
 
-# Add functions folder so we can import SAPManager
-from pathlib import Path
-functions_path = str(Path(__file__).resolve().parent.parent / "functions")
-if functions_path not in sys.path:
-    sys.path.append(functions_path)
-
-from sap_connection import SAPManager
+from process_automation import SAPManager
 
 
 # ── 1. Scan for transaction codes ────────────────────────────────────────────
