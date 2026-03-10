@@ -13,6 +13,25 @@ Anyone who needs to extract SAP reports on a recurring basis. You do not need to
 3. Fill in a few settings (transaction code, file paths)
 4. Run the script
 
+## How is this different from other tools?
+
+Existing Python packages for SAP automation or SharePoint uploads each cover only one piece of the workflow, and even within that piece they typically lack features like parallel execution safety, automatic popup handling, or template-based formatting. To get the full pipeline you'd have to combine multiple packages and write your own glue code.
+
+This package is the full pipeline in a single install:
+
+- **SAP extraction** — connects to SAP GUI via COM scripting, runs your recorded transaction, and exports the data
+- **Data preprocessing** — reads the export into pandas, with optional column extraction, filtering, and deduplication
+- **SharePoint upload** — copies a checked-in Excel template, writes the formatted data into it, and saves it to SharePoint
+
+Other differences:
+
+| | This package | Typical alternatives |
+|---|---|---|
+| **Scope** | End-to-end: SAP to SharePoint | SAP connection only, or Excel only |
+| **Setup for users** | Paste a VBS recording, set a few variables | Learn a framework (Robot Framework) or write glue code |
+| **Parallel execution** | Each script gets its own SAP session and Excel process | Usually single-session, no isolation |
+| **Output formatting** | Template-based Excel with column formatting | Raw CSV or unformatted export |
+
 ## How it works
 
 The scripts follow this workflow:
