@@ -63,7 +63,7 @@ def run_extract(sap_script, transaction="", export_format="xlsx",
                 preprocess_column=None, preprocess_unique=True,
                 preprocess_filters=None, preprocess_skiprows=None,
                 delete_preprocess_copy=False,
-                column_types=None):
+                column_types=None, column_names=None):
 
     if download_dir is None:
         download_dir = os.path.join(os.environ['USERPROFILE'], "Downloads")
@@ -234,6 +234,10 @@ def run_extract(sap_script, transaction="", export_format="xlsx",
     if df_copied is None:
         print("[Error] No data was extracted — skipping upload.")
         return None
+
+    if column_names:
+        df_copied.rename(columns=column_names, inplace=True)
+        print(f"Renamed columns: {column_names}")
 
     if upload_to_sharepoint:
         # Resolve "Default" sharepoint settings to reuse download block values

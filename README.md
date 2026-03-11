@@ -66,6 +66,7 @@ df = run_extract(sap_script,
     export_format="xlsx",
     template_path=r"Z:\path\to\TEMPLATE_DO_NOT_DELETE.xlsx",
     sharepoint_folder=r"Z:\path\to\your_sharepoint_folder",
+    column_names={"OldName": "NewName"}, # optional
 )
 ```
 
@@ -75,7 +76,8 @@ df = run_extract(sap_script,
 3. Set `transaction` to your transaction code
 4. Set `template_path` to the full path of your checked-in `.xlsx` template file
 5. Set `sharepoint_folder` to where you want the output file saved
-6. Run the script
+6. (Optional) Set `column_names` to rename columns before uploading
+7. Run the script
 
 ### SharePoint Upload (template_sharepoint_upload.py)
 

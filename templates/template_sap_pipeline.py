@@ -68,8 +68,9 @@ if __name__ == "__main__":
         sharepoint_use_date="Default",                                         # <-- CHANGE: "Default" = same as download_use_date, or True/False
         sharepoint_use_time="Default",                                         # <-- CHANGE: "Default" = same as download_use_time, or True/False
 
-        # --- Column type overrides (optional) --------------------------------
+        # --- Column tweaks (optional) ----------------------------------------
 
+        column_names=None,                                                     # <-- CHANGE: e.g. {"OldName": "NewName"}
         column_types=None,                                                     # <-- CHANGE: e.g. {"Amount": "currency", "Date": "date"}
                                                                                #     Types: "number", "currency", "date", "time", "percentage", "fraction", "text", "general"
 
