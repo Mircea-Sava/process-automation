@@ -91,6 +91,22 @@ result = save_excel_to_sharepoint(df,
 )
 ```
 
+### Databricks Pipeline (template_databricks_pipeline.py)
+
+Pulls data from Databricks, applies optional filters, then saves locally and/or uploads to SharePoint using the same template-based upload flow.
+
+```python
+df = run_databricks_extract(
+    table_path="catalog.schema.table_name",
+    select_columns=["col1", "col2"],
+    filters=["status = 'ACTIVE'"],
+    download_dir=r"C:\Users\you\Downloads\MRO_EXTRACTS",
+    upload_to_sharepoint=True,
+    template_path=r"Z:\path\to\TEMPLATE_DO_NOT_DELETE.xlsx",
+    sharepoint_folder=r"Z:\path\to\your_sharepoint_folder\MRO_EXTRACTS",
+)
+```
+
 ### Excel Macros (template_excel_macro.py)
 
 Opens an Excel workbook and runs VBA macros by name.
@@ -113,6 +129,7 @@ These are the building blocks. You don't need to edit these files.
 | `sap_connection.py` | Opens SAP GUI, connects to PR1, handles popups like "Multiple Logon" |
 | `sharepoint_upload.py` | Copies the checked-in template, writes your data into it, saves it to SharePoint |
 | `excel_macro.py` | Opens an Excel file and runs a VBA macro |
+| `databricks_extract.py` | Queries Databricks tables/SQL and outputs to local and/or SharePoint |
 
 ## Export Formats
 
