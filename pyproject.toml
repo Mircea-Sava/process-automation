@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "process-automation"
-version = "1.0.7"
-description = "Automate SAP data extraction, SharePoint upload, and Excel macro execution"
+version = "1.1.0"
+description = "Automate SAP data extraction (GUI and RFC), SharePoint upload, and Excel macro execution"
 readme = "README.md"
 license = {file = "LICENSE"}
 authors = [{name = "Mircea Sava Ioan"}]
@@ -15,6 +15,7 @@ dependencies = [
     "xlwings",
     "pywin32",
     "psutil",
+    "openpyxl",
     "databricks-sql-connector",
 ]
 

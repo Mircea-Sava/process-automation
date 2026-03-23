@@ -132,3 +132,125 @@ run_extract(sap_script,
 | 4 | Open it in Notepad, copy the relevant lines |
 | 5 | Add `()` to all method calls (press, select, setFocus, sendVKey) |
 | 6 | Paste into `sap_script()` and call `run_extract()` |
+
+---
+
+# SAP RFC Table Export (template_sap_rfc_export.py)
+
+The recording guide above is for **SAP Transactions** — reports you run through the SAP GUI (ZSUPV, ME2N, IW39, etc.). For those, use `template_sap_pipeline.py`.
+
+If you need to pull data directly from a **SAP Table** (KNA1, AFRU, AUFK, BKPF, etc.), use `template_sap_rfc_export.py` instead. This approach:
+
+- **Does not require SAP GUI recording** — no VBS scripts, no screen automation
+- **Reads SAP tables directly** via RFC (Remote Function Call)
+- **Handles pagination automatically** — large tables are fetched in batches of 10,000 rows
+- **Saves to CSV or XLSX** with optional date/time suffix in the filename
+
+## Setup
+
+### 1. Install the package
+
+```
+pip install process-automation
+```
+
+Or install in editable mode from the repo:
+
+```
+pip install -e path/to/process-automation
+```
+
+### 2. First run — SAP credentials
+
+The first time you run the script, it will prompt you for your SAP credentials:
+
+```
+No credentials found. Please enter your SAP credentials.
+User: your_sap_user
+Password:
+```
+
+Your credentials are encrypted with Windows DPAPI and stored in **Windows Credential Manager** under the name `SAP_CREDENTIALS`. They are reused automatically on future runs.
+
+### 3. If your credentials are wrong
+
+**Option A — reset via command line:**
+
+```
+python -c "from process_automation import WinCredentialStore; WinCredentialStore.delete_credentials(); WinCredentialStore.save_credentials()"
+```
+
+This deletes the saved credentials and prompts you to enter new ones.
+
+**Option B — reset via Windows Credential Manager:**
+
+Open **Control Panel > User Accounts > Credential Manager**, click **Windows Credentials**, find `SAP_CREDENTIALS` under **Generic Credentials**, and remove it. The next run will prompt you again.
+
+![Credential Manager](images/credential_manager.png)
+
+## Usage
+
+Copy `template_sap_rfc_export.py` and fill in your table details:
+
+```python
+from process_automation import run_rfc_extract
+
+run_rfc_extract({
+    "table":      "AFRU",                          # SAP table name
+    "cols":       "PERNR,AUFNR,VORNR,BUDAT",       # columns to fetch
+    "filters":    ["BUDAT >= '20260301'"],          # WHERE conditions
+
+    "output_dir":  r"Z:\your\output\folder",
+    "output_name": "AFRU_export",                   # or None to use table name
+    "extension":   "xlsx",                          # "csv" or "xlsx"
+    "add_date":    True,                            # append _YYYYMMDD
+    "add_time":    False,                           # append _HHMMSS
+})
+```
+
+### Finding the right table and column names
+
+SAP transactions often pull from multiple tables behind the scenes. If you know the transaction but not the underlying table, check SAP documentation or use the schema helper:
+
+```python
+from process_automation import save_table_schema
+
+save_table_schema(
+    table="AFRU",
+    output_dir=r"C:\Temp",
+    field_names="both",        # "technical", "label", or "both"
+    show_example_row=True,
+)
+```
+
+This outputs a CSV/XLSX with every field in the table: position, technical name, label, data type, length, and an example value.
+
+### Chained export (two-step query)
+
+Sometimes you need to query one table first to get filter values for a second table. For example, fetch order numbers from AUFK, then use them to pull confirmations from AFRU:
+
+```python
+run_rfc_extract({
+    "chain": {
+        "table": "AUFK", "cols": "AUFNR,OBJNR,WERKS,ERDAT",
+        "filters": ["ERDAT >= '20260319'", "WERKS = '0005'"],
+        "source_column": "AUFNR", "target_field": "AUFNR",
+    },
+    "table":      "AFRU",
+    "cols":       "PERNR,AUFNR,VORNR,BUDAT",
+    "filters":    [],
+    "output_dir": r"C:\Temp",
+    "extension":  "csv",
+})
+```
+
+## SAP Transactions vs SAP Tables
+
+| | `run_extract` (GUI) | `run_rfc_extract` (RFC) |
+|---|---|---|
+| **Template** | `template_sap_pipeline.py` | `template_sap_rfc_export.py` |
+| **Use for** | SAP Transactions (ZSUPV, ME2N, IW39...) | SAP Tables (KNA1, AFRU, AUFK...) |
+| **Requires** | SAP GUI + recording | SAP GUI installed (for COM) |
+| **How it works** | Replays your screen recording | Reads the table directly via RFC |
+| **Setup** | Record VBS, convert to Python | Just fill in table/columns/filters |
+| **SharePoint** | Template-based upload workflow | Saves directly to SharePoint folder (auto check-in) |

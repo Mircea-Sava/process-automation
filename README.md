@@ -79,6 +79,44 @@ df = run_extract(sap_script,
 6. (Optional) Set `column_names` to rename columns before uploading
 7. Run the script
 
+### SAP RFC Table Export (template_sap_rfc_export.py)
+
+Reads data directly from SAP tables via RFC — no GUI recording needed. Just specify the table name, columns, and filters. Useful when you know the exact table you need (KNA1, AFRU, AUFK, etc.). Saves directly to the output directory — if that's a SharePoint-synced folder (e.g. `Z:\...`), the file is checked in automatically without needing a template or the Excel upload workflow.
+
+```python
+run_rfc_extract({
+    "table":      "AFRU",
+    "cols":       "PERNR,AUFNR,VORNR,BUDAT",
+    "filters":    ["BUDAT >= '20260301'"],
+    "output_dir": r"Z:\path\to\output",
+    "extension":  "xlsx",
+    "add_date":   True,
+})
+```
+
+**How to use:**
+1. Copy this template and rename it (e.g. `AFRU_export.py`)
+2. Set `table` to your SAP table name
+3. Set `cols` to the columns you need (use `save_table_schema()` to discover them)
+4. Set `filters` for your WHERE conditions
+5. Set `output_dir` to where you want the file saved
+6. Run the script — it prompts for SAP credentials on first run
+
+See [SAP_RECORDING_GUIDE.md](SAP_RECORDING_GUIDE.md) for setup details and credential management.
+
+### SAP Table Schema (template_sap_rfc_schema.py)
+
+Fetches the field list of any SAP table — technical names, labels, data types, and an example row.
+
+```python
+save_table_schema(
+    table="AFRU",
+    output_dir=r"C:\Temp",
+    field_names="both",
+    show_example_row=True,
+)
+```
+
 ### SharePoint Upload (template_sharepoint_upload.py)
 
 Uploads any data to SharePoint as a formatted Excel file. No SAP needed. Useful when you already have data in a file or DataFrame and just want to push it to SharePoint.
@@ -127,6 +165,8 @@ These are the building blocks. You don't need to edit these files.
 |------|-------------|
 | `sap_extract.py` | The main engine. Connects to SAP, runs your recording, handles the save dialog, reads the file, uploads to SharePoint |
 | `sap_connection.py` | Opens SAP GUI, connects to PR1, handles popups like "Multiple Logon" |
+| `sap_rfc_export.py` | Reads SAP tables directly via RFC with automatic pagination |
+| `sap_rfc_connection.py` | SAP RFC COM connection with encrypted credential storage (Windows Credential Manager) |
 | `sharepoint_upload.py` | Copies the checked-in template, writes your data into it, saves it to SharePoint |
 | `excel_macro.py` | Opens an Excel file and runs a VBA macro |
 | `databricks_extract.py` | Queries Databricks tables/SQL and outputs to local and/or SharePoint |
