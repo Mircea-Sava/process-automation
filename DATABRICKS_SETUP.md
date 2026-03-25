@@ -100,3 +100,32 @@ You can either:
 2. Use full `query` SQL:
    - CTEs, joins, group by, window functions, unions, subqueries, etc.
    - Recommended as one `SELECT` statement for this workflow.
+
+## 8. Connecting Power BI to Databricks
+
+### Step 1 — Get the HTTP Path from Databricks
+
+1. Go to https://pwc-lab.cloud.databricks.com
+2. Click **Compute** in the left sidebar
+3. Click on your cluster (e.g. `<your-cluster-name>`)
+4. Click **Advanced Options** (at the bottom of the cluster page)
+5. Click the **JDBC/ODBC** tab (not the SSH tab)
+6. Copy the three values shown:
+   - **Server Hostname:** `pwc-lab.cloud.databricks.com`
+   - **Port:** `443`
+   - **HTTP Path:** `<your-http-path>`
+
+### Step 2 — Connect from Power BI Desktop
+
+1. Open **Power BI Desktop**
+2. Click **Get Data** (Home ribbon)
+3. Search for **"Azure Databricks"** in the search box
+4. Select **Azure Databricks** and click **Connect**
+5. Fill in the connection details:
+   - **Server Hostname:** `pwc-lab.cloud.databricks.com`
+   - **HTTP Path:** `<you-http-path>`
+6. Click **OK**
+7. When prompted for authentication, select **Personal Access Token**
+8. Paste your Databricks token (the one from your `.env` file)
+9. Click **Connect**
+10. Browse and select the tables you want (e.g. `team_aftermarket_mro.mro_all.vwf_sap_merged_aufk_afko_afvc_afvv`)
