@@ -30,7 +30,9 @@ if __name__ == "__main__":
         # --- Browser settings ------------------------------------------------
 
         headless=False,                                                         # <-- CHANGE: True = hide browser window
-        wait_until="networkidle",                                               # <-- CHANGE: page load strategy ("networkidle", "load", "domcontentloaded")
+        wait_until="networkidle",                                               # <-- CHANGE: "networkidle" (waits for all requests to finish, safest default),
+                                                                                #             "load" (faster, but may miss AJAX data),
+                                                                                #             "domcontentloaded" (fastest, HTML only — page may not be fully rendered)
 
         # --- Download settings -----------------------------------------------
 
