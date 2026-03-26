@@ -3,26 +3,26 @@ from datetime import datetime, timedelta
 from process_automation import run_extract
 
 
-def sap_script(session):
-    """Paste your full SAP recording here.
-
-    Include everything from after the transaction opens, through running
-    the report, up to and including the export menu click.
-    Stop before the file save dialog — the engine handles that automatically.
-    """
-
-    # Replace everything below with your own SAP recording
-    session.findById("wnd[0]/usr/ctxtS_ERSDA-LOW").text = (datetime.now() - timedelta(weeks=3)).strftime("%Y.%m.%d")
-    session.findById("wnd[0]/usr/ctxtS_ERSDA-HIGH").text = datetime.now().strftime("%Y.%m.%d")
-    session.findById("wnd[0]/usr/ctxtS_PERNR-LOW").text = ""
-    session.findById("wnd[0]/usr/ctxtS_PERNR-LOW").setFocus()
-    session.findById("wnd[0]/usr/ctxtS_PERNR-LOW").caretPosition = 8
-    session.findById("wnd[0]/tbar[1]/btn[8]").press()
-    session.findById("wnd[0]/mbar/menu[0]/menu[3]/menu[1]").select()
-    session.findById("wnd[1]/tbar[0]/btn[0]").press()
-
-
 if __name__ == "__main__":
+
+    def sap_script(session):
+        """Paste your full SAP recording here.
+
+        Include everything from after the transaction opens, through running
+        the report, up to and including the export menu click.
+        Stop before the file save dialog — the engine handles that automatically.
+        """
+
+        # Replace everything below with your own SAP recording
+        session.findById("wnd[0]/usr/ctxtS_ERSDA-LOW").text = (datetime.now() - timedelta(weeks=3)).strftime("%Y.%m.%d")
+        session.findById("wnd[0]/usr/ctxtS_ERSDA-HIGH").text = datetime.now().strftime("%Y.%m.%d")
+        session.findById("wnd[0]/usr/ctxtS_PERNR-LOW").text = ""
+        session.findById("wnd[0]/usr/ctxtS_PERNR-LOW").setFocus()
+        session.findById("wnd[0]/usr/ctxtS_PERNR-LOW").caretPosition = 8
+        session.findById("wnd[0]/tbar[1]/btn[8]").press()
+        session.findById("wnd[0]/mbar/menu[0]/menu[3]/menu[1]").select()
+        session.findById("wnd[1]/tbar[0]/btn[0]").press()
+
     run_extract(sap_script,
 
         # --- Preprocess: prepare file to import (optional) -------------------

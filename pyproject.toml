@@ -17,6 +17,7 @@ dependencies = [
     "psutil",
     "openpyxl",
     "databricks-sql-connector",
+    "playwright",
 ]
 
 [tool.setuptools.packages.find]
