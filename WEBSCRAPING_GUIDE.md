@@ -77,6 +77,11 @@ Don't use `time.sleep()`. Wait for the actual element:
 page.get_by_role("menuitem", name="Export").wait_for(state="visible", timeout=120000)
 ```
 
+You **don't** need `wait_for()` before every click — Playwright already auto-waits for elements to be visible and stable before clicking. Only add explicit `wait_for()` when:
+- The page is slow to load (e.g., SharePoint lists with many items)
+- A submenu or dropdown needs time to appear after a click
+- You're seeing timeout errors on a specific element
+
 ## Troubleshooting
 
 - **Codegen won't download browsers**: Ignore it — use `--channel msedge` to skip the bundled browser download.
