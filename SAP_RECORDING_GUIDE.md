@@ -99,7 +99,17 @@ session.findById("wnd[0]/mbar/menu[0]/menu[3]").select()
 
 ## Step 6: Paste Into Your Script
 
-Put your converted lines inside the `sap_script` function:
+The template is split into two blocs:
+
+**Recording bloc** — your converted SAP session calls go inside `sap_script`:
+
+![Recording bloc](images/sap_recording_script_bloc.png)
+
+**Config bloc** — `run_extract` is called with your transaction settings:
+
+![Config bloc](images/sap_recording_script_config_bloc.png)
+
+Here's the full example together:
 
 ```python
 from process_automation import run_extract
