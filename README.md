@@ -10,7 +10,7 @@ Anyone who needs to extract SAP reports on a recurring basis. You do not need to
 
 1. Record your SAP steps (SAP has a built-in script recorder)
 2. Paste the recording into the template
-3. Fill in a few settings (transaction code, file paths)
+3. Fill in a few settings (file paths, export format)
 4. Run the script
 
 ## How is this different from other tools?
@@ -48,10 +48,10 @@ The "checked-in file" is an `.xlsx` template that lives in a SharePoint folder. 
 ## Folder Structure
 
 ```
-SAP_Automation/
-├── functions/     Core modules that do the actual work (you don't edit these)
-├── templates/     Starter scripts you copy and customize for each SAP transaction
-└── tools/         Utilities like the transaction checker
+process-automation/
+├── process_automation/   Core modules that do the actual work (you don't edit these)
+├── templates/            Starter scripts you copy and customize for each task
+└── tools/                Utilities like the transaction checker
 ```
 
 ## Templates
@@ -62,7 +62,6 @@ The main template. Handles the full workflow: connect to SAP, run your transacti
 
 ```python
 df = run_extract(sap_script,
-    transaction="ZSUPVENG",
     export_format="xlsx",
     template_path=r"Z:\path\to\TEMPLATE_DO_NOT_DELETE.xlsx",
     sharepoint_folder=r"Z:\path\to\your_sharepoint_folder",
@@ -72,12 +71,11 @@ df = run_extract(sap_script,
 
 **How to use:**
 1. Copy this template and rename it (e.g. `ZSUPVENG.py`)
-2. Paste your SAP recording into the `sap_script()` function
-3. Set `transaction` to your transaction code
-4. Set `template_path` to the full path of your checked-in `.xlsx` template file
-5. Set `sharepoint_folder` to where you want the output file saved
-6. (Optional) Set `column_names` to rename columns before uploading
-7. Run the script
+2. Paste your SAP recording into the `sap_script()` function (including the transaction code)
+3. Set `template_path` to the full path of your checked-in `.xlsx` template file
+4. Set `sharepoint_folder` to where you want the output file saved
+5. (Optional) Set `column_names` to rename columns before uploading
+6. Run the script
 
 ### SAP RFC Table Export (template_sap_rfc_export.py)
 
@@ -104,16 +102,26 @@ run_rfc_extract({
 
 See [SAP_RECORDING_GUIDE.md](SAP_RECORDING_GUIDE.md) for setup details and credential management.
 
-### SAP Table Schema (template_sap_rfc_schema.py)
+### SAP RFC Query (template_sap_rfc_schema.py)
 
-Fetches the field list of any SAP table — technical names, labels, data types, and an example row.
+Query any SAP table via RFC and print the result to a text file. Useful for exploring tables, looking up column names (DD03L), finding tables (DD02L), or checking data.
 
 ```python
-save_table_schema(
-    table="AFRU",
+df = sap_query(
+    table="DD03L",
+    cols="TABNAME,FIELDNAME,DATATYPE,LENG",
+    filters=["TABNAME = 'AFRU'"],
+)
+```
+
+### SAP GUI Debug (template_sap_debug.py)
+
+Debug a SAP GUI script. Point it at any SAP pipeline template — if the script fails, it captures an annotated screenshot with numbered elements and a text file listing every button, field, and label with their IDs.
+
+```python
+sap_debug(
+    script_path=r"C:\path\to\your_template.py",
     output_dir=r"C:\Temp",
-    field_names="both",
-    show_example_row=True,
 )
 ```
 
@@ -167,6 +175,7 @@ These are the building blocks. You don't need to edit these files.
 | `sap_connection.py` | Opens SAP GUI, connects to PR1, handles popups like "Multiple Logon" |
 | `sap_rfc_export.py` | Reads SAP tables directly via RFC with automatic pagination |
 | `sap_rfc_connection.py` | SAP RFC COM connection with encrypted credential storage (Windows Credential Manager) |
+| `sap_debug.py` | Debug wrapper for SAP GUI scripts — captures screenshots and element maps on failure |
 | `sharepoint_upload.py` | Copies the checked-in template, writes your data into it, saves it to SharePoint |
 | `excel_macro.py` | Opens an Excel file and runs a VBA macro |
 | `databricks_extract.py` | Queries Databricks tables/SQL and outputs to local and/or SharePoint |
