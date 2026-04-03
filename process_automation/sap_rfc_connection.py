@@ -139,8 +139,9 @@ class RFCConnection:
         ROWCOUNT_param.Value = rowcount
         ROWSKIPS_param.Value = rowskips
 
-        OPTIONS.Data = [filter]
-        FIELDS.Data = cols.split(",")
+        OPTIONS.Data = filter
+        if cols:
+            FIELDS.Data = cols.split(",")
 
         DATA = MyFunc.Tables("DATA")
         DATA.FreeTable()
