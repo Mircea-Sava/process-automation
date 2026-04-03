@@ -8,13 +8,12 @@ if __name__ == "__main__":
         filters=[                                                               # <-- CHANGE: filter conditions
             "TABNAME LIKE 'Z%'",
         ],
-        max_pages=1,                                                            # <-- CHANGE: 0 = all pages, 1 = quick sample
+        max_pages=0,                                                            # <-- CHANGE: 0 = all pages, limits rows fetched from SAP
     )
-    # --- Display options --------------------------------------------------------
-    row_limit    = 0                                                            # <-- CHANGE: 0 = all rows, or set a number (e.g. 50)
+    # --- Output ----------------------------------------------------------------
     output_file  = r"C:\Temp\sap_query_result.txt"                              # <-- CHANGE: output file path
 
-    result = (df.head(row_limit) if row_limit else df).to_string(index=False)
+    result = df.to_string(index=False)
     with open(output_file, "w", encoding="utf-8") as f:
         f.write(result)
     print(f"Result saved to: {output_file}  ({len(df)} rows)")
