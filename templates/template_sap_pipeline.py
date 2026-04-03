@@ -8,12 +8,14 @@ if __name__ == "__main__":
     def sap_script(session):
         """Paste your full SAP recording here.
 
-        Include everything from after the transaction opens, through running
+        Include everything from the transaction code, through running
         the report, up to and including the export menu click.
         Stop before the file save dialog — the engine handles that automatically.
         """
 
         # Replace everything below with your own SAP recording
+        session.findById("wnd[0]/tbar[0]/okcd").text = "/nZSUPV"
+        session.findById("wnd[0]").sendVKey(0)
         session.findById("wnd[0]/usr/ctxtS_ERSDA-LOW").text = (datetime.now() - timedelta(weeks=3)).strftime("%Y.%m.%d")
         session.findById("wnd[0]/usr/ctxtS_ERSDA-HIGH").text = datetime.now().strftime("%Y.%m.%d")
         session.findById("wnd[0]/usr/ctxtS_PERNR-LOW").text = ""
@@ -40,10 +42,6 @@ if __name__ == "__main__":
         preprocess_filters=None,                                                # <-- CHANGE: filter rows before extracting column (e.g. {"Status": ["Active", "Pending"]})
         preprocess_column=None,                                                 # <-- CHANGE: column name to extract (e.g. "Pers.No.")
         preprocess_unique=False,                                                # <-- CHANGE: True = remove duplicates
-
-        # --- Transaction settings --------------------------------------------
-
-        transaction="ZSUPV",                                                    # <-- CHANGE: your transaction code
 
         # --- Export format ---------------------------------------------------
         #

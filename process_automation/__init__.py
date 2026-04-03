@@ -7,3 +7,4 @@ from .sap_rfc_export import run_rfc_extract, sap_query, sap_export, sap_chained_
 from .sap_rfc_export import get_table_schema, save_table_schema
 from .sap_rfc_connection import RFCConnection, WinCredentialStore
 from .web_scrape import run_web_scrape
+from .sap_debug import sap_debug
