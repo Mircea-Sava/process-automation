@@ -1,6 +1,8 @@
 # Process Automation
 
-Automate SAP extractions (GUI and RFC), Databricks queries, web scraping, SharePoint uploads and Excel macro execution with simple Python templates.
+**Most powerful feature: the RFC tool lets you query practically any raw SAP table directly** — even if your company has restricted access to certain transactions, you can go under the hood. No screen access needed, just table name and filters.
+
+Beyond RFC, automate SAP GUI extractions, Databricks queries, web scraping, SharePoint uploads and Excel macro execution with simple Python templates.
 
 ## Install
 
@@ -63,6 +65,10 @@ sap_debug(script_path=r"C:\path\to\your_template.py", output_dir=r"C:\Temp")
 - [SAP_RECORDING_GUIDE.md](SAP_RECORDING_GUIDE.md) — SAP GUI recording setup and RFC credential management
 - [DATABRICKS_SETUP.md](DATABRICKS_SETUP.md) — Databricks connection and authentication
 - [WEBSCRAPING_GUIDE.md](WEBSCRAPING_GUIDE.md) — Web scraping setup with Playwright
+
+## Credits
+
+Originally started as an internal team effort; packaged and open-sourced by contributors from the same group.
 
 ## License
 
