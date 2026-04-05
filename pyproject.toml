@@ -5,9 +5,9 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "process-automation"
 version = "1.2.0"
-description = "Automate SAP data extraction (GUI and RFC), SharePoint upload, and Excel macro execution"
+description = "Automate SAP extractions (GUI and RFC), Databricks queries, web scraping, SharePoint uploads and Excel macro execution"
 readme = "README.md"
-license = {file = "LICENSE"}
+license = {text = "MIT"}
 authors = [{name = "Mircea Sava Ioan"}]
 requires-python = ">=3.9"
 dependencies = [
