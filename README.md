@@ -48,10 +48,10 @@ The "checked-in file" is an `.xlsx` template that lives in a SharePoint folder. 
 ## Folder Structure
 
 ```
-SAP_Automation/
-├── functions/     Core modules that do the actual work (you don't edit these)
-├── templates/     Starter scripts you copy and customize for each SAP transaction
-└── tools/         Utilities like the transaction checker
+process-automation/
+├── process_automation/     Core modules that do the actual work (you don't edit these)
+├── templates/              Starter scripts you copy and customize for each transaction
+└── tools/                  Utilities like the transaction checker
 ```
 
 ## Templates
@@ -145,6 +145,34 @@ df = run_databricks_extract(
 )
 ```
 
+### Web Scraping (template_web_scrape.py)
+
+Automates downloading data from a web page (SharePoint lists, internal portals, etc.) using Playwright, then loads it into a DataFrame and optionally uploads to SharePoint.
+
+```python
+df = run_web_scrape(scrape,
+    url="https://rtxusers.sharepoint.us/sites/.../AllItems.aspx",
+    headless=False,
+    download_dir=r"C:\Users\you\Downloads",
+    read_format=None,               # auto-detect from extension
+    transform_fn=None,              # optional (df) -> df
+    column_names={"OldName": "NewName"},
+    upload_to_sharepoint=True,
+    template_path=r"Z:\path\to\TEMPLATE_DO_NOT_DELETE.xlsx",
+    sharepoint_folder=r"Z:\path\to\your_sharepoint_folder",
+    output_filename_prefix="MyReport",
+    delete_after_upload=False,
+)
+```
+
+**How to use:**
+1. Run `python -m playwright codegen --channel msedge <YOUR_URL>` and click through your flow
+2. Copy the generated locators into a `scrape(page, download_dir)` function that returns the downloaded file path
+3. Paste that function into the template and set your URL and upload settings
+4. Run the script
+
+See [WEBSCRAPING_GUIDE.md](WEBSCRAPING_GUIDE.md) for full setup and Playwright codegen details.
+
 ### Excel Macros (template_excel_macro.py)
 
 Opens an Excel workbook and runs VBA macros by name.
@@ -170,6 +198,7 @@ These are the building blocks. You don't need to edit these files.
 | `sharepoint_upload.py` | Copies the checked-in template, writes your data into it, saves it to SharePoint |
 | `excel_macro.py` | Opens an Excel file and runs a VBA macro |
 | `databricks_extract.py` | Queries Databricks tables/SQL and outputs to local and/or SharePoint |
+| `web_scrape.py` | Playwright-based web scraping pipeline: launch browser, run your recorded clicks, download file, load into DataFrame, upload to SharePoint |
 
 ## Export Formats
 
