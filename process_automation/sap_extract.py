@@ -7,7 +7,7 @@
 #   1. Pre-process (optional)  : copies a file from SharePoint, filters rows, extracts one column
 #                                 into a _copy file that SAP can import as a selection filter
 #   2. SAP connection          : opens SAP GUI and connects to PR1 (via sap_connection.py)
-#   3. Transaction             : enters the transaction code and runs your sap_script(session) function
+#   3. Transaction             : runs your sap_script(session) which includes the transaction code
 #   4. Save dialog             : fills in the file save dialog (path + filename) for txt/xlsx exports
 #   5. Read into memory        : loads the exported file into a pandas DataFrame
 #   6. Close SAP               : logs off and closes the SAP window
@@ -20,7 +20,7 @@
 #
 #   df = run_extract(
 #       sap_script,
-#       transaction="ZSUPVENG",
+#       # transaction code is inside sap_script
 #       template_path=r"Z:\path\to\TEMPLATE_DO_NOT_DELETE.xlsx",
 #       export_format="xlsx",
 #       upload_to_sharepoint=True,
@@ -50,7 +50,7 @@ def build_filename(base, use_date=True, use_time=True):
     return "_".join(parts)
 
 
-def run_extract(sap_script, transaction="", export_format="xlsx",
+def run_extract(sap_script, export_format="xlsx",
                 template_path="",
                 sharepoint_folder="",
                 sharepoint_filename="Default", download_dir=None,
@@ -69,7 +69,7 @@ def run_extract(sap_script, transaction="", export_format="xlsx",
         download_dir = os.path.join(os.environ['USERPROFILE'], "Downloads")
 
     # Build output filename
-    dl_base = download_filename or transaction
+    dl_base = download_filename
     dl_date = download_use_date if download_use_date is not None else sharepoint_use_date
     dl_time = download_use_time if download_use_time is not None else sharepoint_use_time
     OUTPUT_NAME = build_filename(dl_base, dl_date, dl_time)
@@ -154,11 +154,7 @@ def run_extract(sap_script, transaction="", export_format="xlsx",
     file_path = None
     df_copied = None
     try:
-        # Enter the transaction
-        session.findById("wnd[0]/tbar[0]/okcd").text = transaction
-        session.findById("wnd[0]").sendVKey(0)
-
-        # Run the transaction-specific SAP script
+        # Run the transaction-specific SAP script (transaction code is in the recording)
         sap_script(session)
 
         # --- Save dialog (sap_script should have triggered the export menu already) ---
@@ -248,7 +244,7 @@ def run_extract(sap_script, transaction="", export_format="xlsx",
         if sharepoint_use_time == "Default":
             sharepoint_use_time = download_use_time if download_use_time is not None else True
 
-        sp_filename = sharepoint_filename or transaction
+        sp_filename = sharepoint_filename or download_filename
         OUTPUT_PREFIX = build_filename(sp_filename, sharepoint_use_date, sharepoint_use_time)
 
         result = save_excel_to_sharepoint(
