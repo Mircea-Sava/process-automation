@@ -1,5 +1,21 @@
 # Playwright Guide — SharePoint Automation Scripts
 
+## Quick start
+
+Use `template_web_scrape.py` as your starting point. It calls `run_web_scrape()` which handles the full pipeline for you:
+
+1. Launch Edge via Playwright
+2. Navigate to your URL
+3. Run your `scrape(page, download_dir)` function (your recorded clicks)
+4. Read the downloaded file into a pandas DataFrame
+5. Apply optional transforms, column renames, column reordering
+6. Upload to SharePoint as a formatted Excel file
+7. Clean up local file if requested
+
+The only thing you write is the `scrape()` function — everything else is handled by the engine. See the [README](README.md) for the full parameter reference.
+
+---
+
 ## Why Playwright instead of Selenium?
 
 Selenium scripts broke when running on different laptops because:
