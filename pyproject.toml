@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "process-automation"
-version = "1.2.1"
+version = "1.2.2"
 description = "Automate SAP extractions (GUI and RFC), Databricks queries, web scraping, SharePoint uploads and Excel macro execution"
 readme = "README.md"
 license = {text = "MIT"}
