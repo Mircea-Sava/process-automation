@@ -1,21 +1,43 @@
-# SharePoint Excel Uploader
-# =========================
-# Uploads DataFrames to SharePoint as Excel files using a template-based approach.
+# SharePoint File Uploader
+# ========================
+# Uploads files to SharePoint using a template-based approach. Supports both
+# Excel (DataFrame written via xlwings) and CSV (DataFrame saved internally as
+# CSV then uploaded via a workaround that avoids SharePoint checkout locks).
 #
-# How it works:
-#   1. Uses the template .xlsx file you provide via template_path
-#   2. Copies the template to Desktop as a working copy (renamed to your output filename)
-#   3. Opens the working copy with xlwings and writes your DataFrame into the first sheet
-#   4. Saves and copies the file to the SharePoint folder
-#   5. Deletes the Desktop working copy (unless keep_desktop_copy=True)
+# Excel mode (default):
+#   1. Copies the template .xlsx to Desktop as a working copy
+#   2. Opens with xlwings and writes the DataFrame into the first sheet
+#   3. Saves and copies the file to the SharePoint folder
+#   4. Deletes the Desktop working copy (unless keep_desktop_copy=True)
 #
-# Usage:
+# CSV mode:
+#   1. Saves the DataFrame to a temp .csv locally
+#   2. Copies template .xlsx to SharePoint as a placeholder
+#   3. Renames temp .csv -> .xlsx (disguise)
+#   4. Overwrites the placeholder with the disguised file
+#   5. Renames the file on SharePoint from .xlsx -> .csv
+#   6. Cleans up the temp file
+#
+# Why the CSV workaround: SharePoint triggers a checkout lock when an Office file
+# (.xlsx, .docx) is created or overwritten via the mapped drive. By keeping .xlsx
+# throughout and only renaming to .csv as the last step, SharePoint sees a plain
+# file rename — no checkout lock.
+#
+# Usage (Excel):
 #   from process_automation import save_excel_to_sharepoint
 #
 #   result = save_excel_to_sharepoint(df,
-#       template_path=r"Z:\path\to\TEMPLATE_DO_NOT_DELETE.xlsx",
-#       sharepoint_folder=r"Z:\path\to\your_sharepoint_folder",
+#       placeholder_template_path=r"Z:\path\to\TEMPLATE_DO_NOT_DELETE.xlsx",
+#       sharepoint_folder=r"Z:\path\to\sharepoint_folder",
 #       output_filename_prefix="MyReport_2026-02-26",
+#   )
+#
+# Usage (CSV):
+#   result = save_excel_to_sharepoint(df,
+#       placeholder_template_path=r"Z:\path\to\TEMPLATE_DO_NOT_DELETE.xlsx",
+#       sharepoint_folder=r"Z:\path\to\sharepoint_folder",
+#       output_filename_prefix="MyReport_2026-02-26",
+#       format="csv",
 #   )
 
 import os
@@ -26,7 +48,7 @@ from typing import Dict, Optional
 import pandas as pd
 import xlwings as xw
 
-_TEMPLATE_PATTERN = "TEMPLATE_DO_NOT_DELETE"
+_TEMPLATE_PATTERN = "TEMPLATE_DO_NOT_DELETE"  # used by auto-detection if implemented later
 
 _EXCEL_FORMATS = {
     "number":     "0.00",
@@ -41,13 +63,53 @@ _EXCEL_FORMATS = {
 
 
 def save_excel_to_sharepoint(
-    df: pd.DataFrame,
-    template_path: str,
+    df: Optional[pd.DataFrame],
+    placeholder_template_path: str,
     sharepoint_folder: str,
     output_filename_prefix: str,
+    format: str = "xlsx",
     keep_desktop_copy: bool = False,
     excel_visible: bool = False,
-    column_types: Optional[Dict[str, str]] = None
+    column_types: Optional[Dict[str, str]] = None,
+    create_folders: bool = True,
+) -> Dict[str, str]:
+
+    if format not in ("xlsx", "csv"):
+        raise ValueError("format must be 'xlsx' or 'csv'")
+
+    if format == "csv":
+        if df is None:
+            raise ValueError("df is required when format='csv'")
+        return _upload_csv_workaround(
+            df=df,
+            placeholder_template_path=placeholder_template_path,
+            sharepoint_folder=sharepoint_folder,
+            output_filename_prefix=output_filename_prefix,
+            create_folders=create_folders,
+            keep_desktop_copy=keep_desktop_copy,
+        )
+
+    return _upload_excel(
+        df=df,
+        placeholder_template_path=placeholder_template_path,
+        sharepoint_folder=sharepoint_folder,
+        output_filename_prefix=output_filename_prefix,
+        keep_desktop_copy=keep_desktop_copy,
+        excel_visible=excel_visible,
+        column_types=column_types,
+        create_folders=create_folders,
+    )
+
+
+def _upload_excel(
+    df: Optional[pd.DataFrame],
+    placeholder_template_path: str,
+    sharepoint_folder: str,
+    output_filename_prefix: str,
+    keep_desktop_copy: bool,
+    excel_visible: bool,
+    column_types: Optional[Dict[str, str]],
+    create_folders: bool,
 ) -> Dict[str, str]:
 
     desktop_folder = os.path.join(os.environ["USERPROFILE"], "Desktop")
@@ -57,26 +119,23 @@ def save_excel_to_sharepoint(
         print(f"   [Warning] Could not create SharePoint folder dynamically. Relying on existing path. ({e})")
     os.makedirs(desktop_folder, exist_ok=True)
 
-    # Validate template file
-    if not os.path.isfile(template_path):
-        raise FileNotFoundError(f"Template file does not exist: {template_path}")
+    if not os.path.isfile(placeholder_template_path):
+        raise FileNotFoundError(f"Template file does not exist: {placeholder_template_path}")
 
-    src_path = template_path
+    src_path = placeholder_template_path
     template_file = os.path.basename(src_path)
 
-    # Build paths
     new_filename = f"{output_filename_prefix}.xlsx"
     sharepoint_path = os.path.join(sharepoint_folder, new_filename)
     desktop_path = os.path.join(desktop_folder, new_filename)
 
     print("=" * 60)
-    print("SHAREPOINT UPLOAD - STARTED")
+    print("SHAREPOINT UPLOAD (XLSX) - STARTED")
     print("=" * 60)
     print(f"Template: {template_file}")
     print(f"Output: {new_filename}")
     print("=" * 60)
 
-    # --- Step 1: Copy the template to Desktop as a working copy ---
     try:
         if os.path.exists(desktop_path):
             os.chmod(desktop_path, stat.S_IWRITE)
@@ -89,7 +148,6 @@ def save_excel_to_sharepoint(
         print(f"\n[Error] Step 1 failed: {e}")
         raise
 
-    # --- Step 2: Open the working copy and write DataFrame ---
     if df is not None:
         try:
             app = xw.App(visible=excel_visible, add_book=False)
@@ -101,7 +159,6 @@ def save_excel_to_sharepoint(
                 ws = wb.sheets[0]
                 print("\n[OK] Step 2: Excel file opened")
 
-                # Convert date/time columns to strings (xlwings can't handle them)
                 df_write = df.copy()
                 for col in df_write.columns:
                     if df_write[col].apply(lambda x: isinstance(x, (_dt.time, _dt.date)) and not isinstance(x, _dt.datetime)).any():
@@ -110,7 +167,6 @@ def save_excel_to_sharepoint(
                 ws.range('A1').options(index=False).value = df_write
                 print(f"   [OK] Wrote {df.shape[0]} rows x {df.shape[1]} cols")
 
-                # Apply column formats
                 if column_types and df.shape[0] > 0:
                     headers = [str(c) for c in df.columns.tolist()]
                     for col_name, fmt_type in column_types.items():
@@ -142,7 +198,6 @@ def save_excel_to_sharepoint(
     else:
         print("\n[Skip] Step 2: No data provided, file just gets copied")
 
-    # --- Step 3: Copy to SharePoint ---
     try:
         shutil.copyfile(desktop_path, sharepoint_path)
         os.chmod(sharepoint_path, stat.S_IWRITE)
@@ -153,7 +208,6 @@ def save_excel_to_sharepoint(
         print("   Check: permissions, checkout requirements, folder access")
         raise
 
-    # Cleanup
     if not keep_desktop_copy:
         try:
             os.remove(desktop_path)
@@ -166,8 +220,129 @@ def save_excel_to_sharepoint(
     print("=" * 60 + "\n")
 
     return {
-        'template_path': src_path,
+        'placeholder_template_path': src_path,
         'sharepoint_path': sharepoint_path,
         'desktop_path': desktop_path,
         'filename': new_filename
     }
+
+
+def _upload_csv_workaround(
+    df: pd.DataFrame,
+    placeholder_template_path: str,
+    sharepoint_folder: str,
+    output_filename_prefix: str,
+    create_folders: bool,
+    keep_desktop_copy: bool = False,
+) -> Dict[str, str]:
+
+    if not os.path.isfile(placeholder_template_path):
+        raise FileNotFoundError(f"Template file does not exist: {placeholder_template_path}")
+
+    if create_folders:
+        try:
+            os.makedirs(sharepoint_folder, exist_ok=True)
+        except OSError as e:
+            print(f"   [Warning] Could not create SharePoint folder dynamically. ({e})")
+
+    template_file = os.path.basename(placeholder_template_path)
+
+    sp_placeholder_xlsx = os.path.join(sharepoint_folder, f"{output_filename_prefix}.xlsx")
+    sp_final_csv = os.path.join(sharepoint_folder, f"{output_filename_prefix}.csv")
+
+    desktop_folder = os.path.join(os.environ["USERPROFILE"], "Desktop")
+    os.makedirs(desktop_folder, exist_ok=True)
+
+    print("=" * 60)
+    print("SHAREPOINT UPLOAD (CSV) - STARTED")
+    print("=" * 60)
+    print(f"Template : {template_file}")
+    print(f"Output   : {output_filename_prefix}.csv")
+    print(f"Rows     : {df.shape[0]:,} x {df.shape[1]}")
+    print("=" * 60)
+
+    temp_csv = os.path.join(desktop_folder, f"{output_filename_prefix}_temp.csv")
+
+    try:
+        df.to_csv(temp_csv, index=False)
+        print(f"\n[OK] Step 1: DataFrame saved to Desktop as temp CSV")
+        print(f"   Location: {temp_csv}")
+
+        for leftover in (sp_placeholder_xlsx, sp_final_csv):
+            if os.path.exists(leftover):
+                os.remove(leftover)
+
+        shutil.copyfile(placeholder_template_path, sp_placeholder_xlsx)
+        print(f"\n[OK] Step 2: Template copied to SharePoint as .xlsx placeholder")
+        print(f"   Location: {sp_placeholder_xlsx}")
+
+    except Exception as e:
+        print(f"\n[Error] Step 1-2 failed: {e}")
+        raise
+
+    local_xlsx = os.path.splitext(temp_csv)[0] + ".xlsx"
+
+    try:
+        if os.path.exists(local_xlsx):
+            os.remove(local_xlsx)
+        os.rename(temp_csv, local_xlsx)
+        print(f"\n[OK] Step 3: Temp file renamed from .csv to .xlsx")
+        print(f"   Location: {local_xlsx}")
+    except Exception as e:
+        print(f"\n[Error] Step 3 failed: Could not rename temp file to .xlsx: {e}")
+        if not keep_desktop_copy:
+            for f in (local_xlsx, temp_csv):
+                try:
+                    if os.path.exists(f):
+                        os.remove(f)
+                except Exception:
+                    pass
+        raise
+
+    try:
+        shutil.copyfile(local_xlsx, sp_placeholder_xlsx)
+        print(f"\n[OK] Step 4: Local .xlsx pasted into SharePoint (overwrites placeholder)")
+        print(f"   Source : {local_xlsx}")
+        print(f"   Dest   : {sp_placeholder_xlsx}")
+    except Exception as e:
+        print(f"\n[Error] Step 4 failed: {e}")
+        raise
+
+    try:
+        os.rename(sp_placeholder_xlsx, sp_final_csv)
+        print(f"\n[OK] Step 5: File renamed to .csv in SharePoint")
+        print(f"   Location: {sp_final_csv}")
+    except Exception as e:
+        print(f"\n[Error] Step 5 failed: Could not rename SharePoint file to .csv: {e}")
+        raise
+
+    if keep_desktop_copy:
+        print(f"\n[OK] Step 6: Desktop copies kept")
+        print(f"   CSV: {temp_csv}")
+        print(f"   XLSX: {local_xlsx}")
+    else:
+        try:
+            os.remove(local_xlsx)
+        except Exception as e:
+            print(f"\n[Warning] Could not remove Desktop .xlsx (non-blocking): {e}")
+        try:
+            if os.path.exists(temp_csv):
+                os.remove(temp_csv)
+        except Exception as e:
+            print(f"[Warning] Could not remove Desktop .csv (non-blocking): {e}")
+        print(f"\n[OK] Step 6: Desktop copies removed")
+
+    print("\n" + "=" * 60)
+    print("[Done] PROCESS COMPLETED")
+    print("=" * 60)
+    print(f"Final file location: {sp_final_csv}")
+    print("=" * 60 + "\n")
+
+    result = {
+        "placeholder_template_path": placeholder_template_path,
+        "sharepoint_path": sp_final_csv,
+        "filename": f"{output_filename_prefix}.csv",
+        "desktop_csv_path": temp_csv,
+        "desktop_xlsx_path": local_xlsx,
+    }
+    return result
