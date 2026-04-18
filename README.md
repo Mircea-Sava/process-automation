@@ -19,7 +19,7 @@ Copy a template, fill in your settings, and run it.
 | `template_sap_pipeline.py` | Record a SAP transaction, export data, upload to SharePoint |
 | `template_sap_rfc_export.py` | Export SAP tables directly via RFC to CSV/XLSX |
 | `template_sap_rfc_schema.py` | Query any SAP table (DD02L, DD03L, etc.) and print results |
-| `template_sap_bw_mdx_export.py` | Export a SAP BW query (BEx / InfoProvider) to CSV/XLSX via MDX + OLAP BAPIs |
+
 | `template_sap_debug.py` | Debug a SAP script — captures screenshot + element map on failure |
 | `template_sharepoint_upload.py` | Upload a DataFrame to SharePoint as formatted Excel |
 | `template_databricks_pipeline.py` | Query Databricks and save locally or upload to SharePoint |
@@ -50,22 +50,6 @@ run_rfc_extract({
     "filters": ["BUDAT >= '20260301'"],
     "output_dir": r"Z:\path\to\output",
     "extension": "xlsx",
-})
-```
-
-**SAP BW MDX export** — pull a BEx query without GUI scripting:
-
-```python
-from process_automation import run_bw_mdx_extract
-
-run_bw_mdx_extract({
-    "query":   "ZMY_QUERY",
-    "rows":    ["[0MATERIAL].[LEVEL01].MEMBERS"],
-    "columns": ["[Measures].[ZSALES]", "[Measures].[ZQTY]"],
-    "where":   "([0CALMONTH].[202603])",
-    "variables": {"ZVAR_PLANT": "0005"},
-    "output_dir":  r"Z:\path\to\output",
-    "extension":   "xlsx",
 })
 ```
 
