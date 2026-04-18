@@ -41,7 +41,7 @@ COL_BATCH_SIZE = 30
 
 # -- Internal helpers ----------------------------------------------------------
 
-def _fetch_column_batches(conn, table: str, cols: str, filters: list[str], batch_size: int, max_pages: int = 0, col_batch_size: int = COL_BATCH_SIZE) -> pd.DataFrame:
+def _fetch_column_batches(conn, table: str, cols: str, filters: list[str], batch_size: int, max_pages: int = 0, col_batch_size: int = COL_BATCH_SIZE, use_fieldnames: bool = False) -> pd.DataFrame:
     """
     Fetch a table in column batches to avoid the 512-char row width limit
     of BBP_RFC_READ_TABLE. Each batch fetches a subset of columns with full
@@ -50,7 +50,7 @@ def _fetch_column_batches(conn, table: str, cols: str, filters: list[str], batch
     col_list = [c.strip() for c in cols.split(",")]
 
     if col_batch_size <= 0 or len(col_list) <= col_batch_size:
-        return _fetch_all_pages(conn, table, cols, filters, batch_size, max_pages)
+        return _fetch_all_pages(conn, table, cols, filters, batch_size, max_pages, use_fieldnames)
 
     col_batches = [col_list[i:i + col_batch_size] for i in range(0, len(col_list), col_batch_size)]
     print(f"Splitting {len(col_list)} columns into {len(col_batches)} batch(es) of up to {col_batch_size}")
@@ -59,7 +59,7 @@ def _fetch_column_batches(conn, table: str, cols: str, filters: list[str], batch
     for i, batch in enumerate(col_batches, 1):
         batch_cols = ",".join(batch)
         print(f"\n   Column batch {i}/{len(col_batches)}  ({len(batch)} cols: {batch_cols[:60]}{'...' if len(batch_cols) > 60 else ''})")
-        df_batch = _fetch_all_pages(conn, table, batch_cols, filters, batch_size, max_pages)
+        df_batch = _fetch_all_pages(conn, table, batch_cols, filters, batch_size, max_pages, use_fieldnames)
         if df_batch.empty and i == 1:
             return pd.DataFrame()
         dfs.append(df_batch)
@@ -71,12 +71,13 @@ def _fetch_column_batches(conn, table: str, cols: str, filters: list[str], batch
     return df
 
 
-def _fetch_all_pages(conn, table: str, cols: str, filters: list[str], batch_size: int, max_pages: int = 0) -> pd.DataFrame:
+def _fetch_all_pages(conn, table: str, cols: str, filters: list[str], batch_size: int, max_pages: int = 0, use_fieldnames: bool = False) -> pd.DataFrame:
     """
     Call bbp_rfc_read_table repeatedly until all rows are retrieved.
     Returns a single concatenated DataFrame.
     None from the RFC = valid empty result (zero rows), not an error.
     max_pages: if > 0, stop after that many pages (useful for debug).
+    use_fieldnames: if True, DATA returns field names as first row.
     """
     pages = []
     offset = 0
@@ -92,6 +93,7 @@ def _fetch_all_pages(conn, table: str, cols: str, filters: list[str], batch_size
             filters,
             rowcount=batch_size,
             rowskips=offset,
+            use_fieldnames=use_fieldnames,
         )
 
         if data is None:
@@ -219,6 +221,7 @@ def sap_query_conn(
     cols: str | list[str],
     filters: list[str],
     batch_size: int = BATCH_SIZE,
+    use_fieldnames: bool = False,
 ) -> pd.DataFrame:
     """
     Fetch a SAP table using an already-open connection. Returns a DataFrame.
@@ -226,7 +229,7 @@ def sap_query_conn(
     """
     if isinstance(cols, list):
         cols = ",".join(cols)
-    return _fetch_column_batches(conn, table, cols, filters, batch_size)
+    return _fetch_column_batches(conn, table, cols, filters, batch_size, use_fieldnames=use_fieldnames)
 
 
 def sap_query(
@@ -235,18 +238,20 @@ def sap_query(
     filters: list[str],
     batch_size: int = BATCH_SIZE,
     max_pages: int = 0,
+    use_fieldnames: bool = False,
 ) -> pd.DataFrame:
     """
     Fetch a SAP table and return a DataFrame. Opens and closes its own session.
     No file is written. Useful for chaining results into a second call.
     max_pages: if > 0, stop after that many pages (e.g. max_pages=1 for a quick sample).
+    use_fieldnames: if True, DATA returns field names as first row.
     """
     if isinstance(cols, list):
         cols = ",".join(cols)
 
     with _sap_connection() as conn:
         print(f"   [{table}]")
-        return _fetch_column_batches(conn, table, cols, filters, batch_size, max_pages=max_pages)
+        return _fetch_column_batches(conn, table, cols, filters, batch_size, max_pages=max_pages, use_fieldnames=use_fieldnames)
 
 
 def sap_export(
@@ -257,6 +262,7 @@ def sap_export(
     output_name: str = None,
     extension: str = "csv",
     batch_size: int = BATCH_SIZE,
+    use_fieldnames: bool = False,
 ) -> str:
     """
     Fetch a SAP table and save to CSV or XLSX. Returns the file path.
@@ -267,34 +273,30 @@ def sap_export(
 
     with _sap_connection() as conn:
         print(f"   [{table}]")
-        df = _fetch_column_batches(conn, table, cols, filters, batch_size)
+        df = _fetch_column_batches(conn, table, cols, filters, batch_size, use_fieldnames=use_fieldnames)
 
     return save_df(df, output_dir, output_name or table, extension)
 
 
 def sap_chained_export(
-    # Step 1 — lookup query
     chain_table: str,
     chain_cols: str | list[str],
     chain_filters: list[str],
     chain_source_column: str,
-    # Step 2 — main export
     table: str,
     cols: str | list[str],
     target_field: str,
-    # Output
     output_dir: str,
     output_name: str,
     extension: str = "csv",
-    # Tuning
     batch_size: int = BATCH_SIZE,
     chain_batch_size: int = BATCH_SIZE,
     chunk_size: int = 2,
-    # Optional: save Step 1 result
     save_chain_file: bool = False,
     chain_output_dir: str = None,
     chain_output_name: str = None,
     chain_extension: str = "csv",
+    use_fieldnames: bool = False,
 ) -> str:
     """
     Two-step chained export: query one SAP table, use a column from the
@@ -302,7 +304,6 @@ def sap_chained_export(
 
     A single SAP connection is reused across all Step 2 chunks.
     """
-    # Step 1 — fetch the lookup table
     print(f"\nStep 1 — querying {chain_table} to build filter...")
     df_chain = sap_query(
         table=chain_table,
@@ -328,7 +329,6 @@ def sap_chained_export(
     print(f"\nStep 2 — exporting {table} in {len(chunks)} chunk(s) "
           f"({len(values):,} unique {target_field} values, {chunk_size} per chunk)...")
 
-    # Step 2 — one connection reused across all chunks
     if isinstance(cols, list):
         cols = ",".join(cols)
 
@@ -341,7 +341,7 @@ def sap_chained_export(
             print(f"\n   Chunk {i}/{len(chunks)}  ({len(chunk)} values)  "
                   f"filter: {chunk_filter[0][:80]}{'...' if len(chunk_filter[0]) > 80 else ''}")
 
-            df_chunk = _fetch_column_batches(conn, table, cols, chunk_filter, batch_size)
+            df_chunk = _fetch_column_batches(conn, table, cols, chunk_filter, batch_size, use_fieldnames=use_fieldnames)
             if not df_chunk.empty:
                 dfs.append(df_chunk)
 
@@ -503,16 +503,14 @@ def run_rfc_extract(config: dict) -> str:
 
     Optional keys:
         filters, extension, add_date, add_time, output_name, batch_size,
-        file_filter, chain
+        file_filter, chain, use_fieldnames
 
     Returns the output file path.
     """
-    # Required keys
     table = config["table"]
     cols = config["cols"]
     output_dir = config["output_dir"]
 
-    # Optional keys
     filters = config.get("filters", [])
     extension = config.get("extension", "csv")
     add_date = config.get("add_date", False)
@@ -521,16 +519,14 @@ def run_rfc_extract(config: dict) -> str:
     batch_size = config.get("batch_size", BATCH_SIZE)
     file_filter = config.get("file_filter")
     chain = config.get("chain")
+    use_fieldnames = config.get("use_fieldnames", False)
 
-    # Validate
     if file_filter and chain:
         raise ValueError("Cannot use both 'file_filter' and 'chain' at the same time. Pick one.")
 
-    # Build output name
     name = build_output_name(output_name or table, add_date, add_time)
     print(f"Output name: {name}.{extension}")
 
-    # Mode: chained two-step export
     if chain:
         return sap_chained_export(
             chain_table=chain["table"],
@@ -550,9 +546,9 @@ def run_rfc_extract(config: dict) -> str:
             chain_output_dir=chain.get("save_dir"),
             chain_output_name=chain.get("save_name"),
             chain_extension=chain.get("save_extension", "csv"),
+            use_fieldnames=use_fieldnames,
         )
 
-    # Mode: file-based filter
     if file_filter:
         filters = build_filter_from_file(
             file_path=file_filter["path"],
@@ -560,7 +556,6 @@ def run_rfc_extract(config: dict) -> str:
             sap_field=file_filter["field"],
         )
 
-    # Mode: plain filters (default)
     return sap_export(
         table=table,
         cols=cols,
@@ -569,4 +564,5 @@ def run_rfc_extract(config: dict) -> str:
         output_name=name,
         extension=extension,
         batch_size=batch_size,
+        use_fieldnames=use_fieldnames,
     )

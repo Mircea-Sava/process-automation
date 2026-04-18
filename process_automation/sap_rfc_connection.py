@@ -108,7 +108,7 @@ class RFCConnection:
         """Log off SAP."""
         self.R3.Connection.Logoff()
 
-    def bbp_rfc_read_table(self, tbl, cols, filter, rowcount=0, rowskips=0):
+    def bbp_rfc_read_table(self, tbl, cols, filter, rowcount=0, rowskips=0, use_fieldnames=False):
         """
         Fetch data from a SAP table via BBP_RFC_READ_TABLE.
 
@@ -119,6 +119,7 @@ class RFCConnection:
         filter   : list of filter condition strings (OPTIONS rows)
         rowcount : max rows to return (0 = no limit)
         rowskips : number of rows to skip from the top (for pagination)
+        use_fieldnames : if True, DATA returns field names as first row
         """
         if self.R3.Connection.IsConnected != 1:
             print("Error - logon to SAP Failed")
@@ -132,12 +133,14 @@ class RFCConnection:
         QUERY_TABLE = MyFunc.Exports("QUERY_TABLE")
         ROWCOUNT_param = MyFunc.Exports("ROWCOUNT")
         ROWSKIPS_param = MyFunc.Exports("ROWSKIPS")
+        USE_FIELDNAMES_param = MyFunc.Exports("USE_FIELDNAMES")
         OPTIONS = MyFunc.Tables("OPTIONS")
         FIELDS = MyFunc.Tables("FIELDS")
 
         QUERY_TABLE.Value = tbl
         ROWCOUNT_param.Value = rowcount
         ROWSKIPS_param.Value = rowskips
+        USE_FIELDNAMES_param.Value = "X" if use_fieldnames else ""
 
         OPTIONS.Data = filter
         if cols:
@@ -152,13 +155,24 @@ class RFCConnection:
         if DATA.Rowcount > 0:
             unique = tuple(set(DATA.Data))
             dic = []
-            for i in unique:
-                d = {}
-                for j in FIELDS.Data:
-                    istart = int(j[1])
-                    iEnd = int(j[2])
-                    d[j[4]] = (i[0][istart:iEnd + istart]).strip()
-                dic.append(d)
+            if use_fieldnames:
+                field_names = list(unique[0])
+                for i in unique[1:]:
+                    d = {}
+                    for field_idx, j in enumerate(FIELDS.Data):
+                        istart = int(j[1])
+                        iEnd = int(j[2])
+                        field_name = field_names[field_idx] if field_idx < len(field_names) else j[4]
+                        d[field_name] = (i[0][istart:iEnd + istart]).strip()
+                    dic.append(d)
+            else:
+                for i in unique:
+                    d = {}
+                    for j in FIELDS.Data:
+                        istart = int(j[1])
+                        iEnd = int(j[2])
+                        d[j[4]] = (i[0][istart:iEnd + istart]).strip()
+                    dic.append(d)
         else:
             dic = None
 

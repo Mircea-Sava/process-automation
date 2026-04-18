@@ -4,7 +4,6 @@ from process_automation import run_rfc_extract
 if __name__ == "__main__":
     run_rfc_extract({
         # --- OPTIONAL: chained two-step export --------------------------------
-        # Step 1 runs first, its output filters TABLE below
         # "chain": {
         #     "table": "AUFK", "cols": "AUFNR,OBJNR,WERKS,ERDAT",
         #     "filters": ["ERDAT >= '20260319'", "(WERKS = '0005' OR WERKS = '0212')"],
@@ -27,6 +26,7 @@ if __name__ == "__main__":
         "add_date":    True,                                                    # <-- CHANGE: append _YYYYMMDD
         "add_time":    True,                                                    # <-- CHANGE: append _HHMMSS
 
-        # --- OPTIONAL: filter from a file instead of filters ------------------
+        # --- OPTIONAL ---------------------------------------------------------
+        # "use_fieldnames": True,                                              # <-- CHANGE: first DATA row contains field names (for BAPI_MDDATASET_* style queries)
         # "file_filter": {"path": r"Z:\my_file.xlsx", "column": "OBJNR", "field": "OBJNR"},
     })
